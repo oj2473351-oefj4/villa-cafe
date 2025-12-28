@@ -148,7 +148,7 @@
 
         /* تأثيرات قسم الـ AI */
         .ai-glow {
-            box-shadow: 0 0 15px rgba(253, 184, 39, 0.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
         .ai-glow:focus-within {
@@ -332,11 +332,11 @@
             <!-- أزرار التنقل بين الأقسام -->
             <div class="flex flex-wrap justify-center gap-4 mb-12">
                 <button onclick="filterMenu('all')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">الكل</button>
-                <button onclick="filterMenu('hot')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">بدفي العظم (ساخن)</button>
-                <button onclick="filterMenu('cold')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">جرعة تصحي الميت (بارد)</button>
-                <button onclick="filterMenu('natural')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">طبيعي يابا (عصائر)</button>
-                <button onclick="filterMenu('food')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">خسى الجوع (مأكولات)</button>
-                <button onclick="filterMenu('dessert')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">شغلة متعوب عليها (حلا)</button>
+                <button onclick="filterMenu('hot')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">ساخن</button>
+                <button onclick="filterMenu('cold')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">بارد</button>
+                <button onclick="filterMenu('natural')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">عصائر</button>
+                <button onclick="filterMenu('food')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition"> مأكولات</button>
+                <button onclick="filterMenu('dessert')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">حلا</button>
                 <button onclick="filterMenu('shisha')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">ترويقة عالدغري</button>
             </div>
 
@@ -588,7 +588,7 @@
                 <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">✨ خبير مزاجك ✨</h2>
                 <div class="w-24 h-1 bg-villa-gold mx-auto"></div>
                 <p class="text-gray-400 mt-4 max-w-2xl mx-auto">
-                    محتار شو تطلب؟ احكيلنا كيف مزاجك أو شو جاي عبالك، والباريستا الذكي رح يقترح عليك المشروب المثالي من المنيو!
+                    محتار شو تطلب؟ احكيلنا كيف مزاجك أو شو جاي عبالك، والباريستا رح يقترح عليك المشروب المثالي من المنيو!
                 </p>
             </div>
 
@@ -668,7 +668,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-gray-400 mb-2 text-sm">الاسم</label>
-                                <input type="text" id="booking-name" required class="w-full bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition" placeholder="الاسم الكريم">
+                                <input type="text" id="booking-name" required class="w-full bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition" placeholder="الاسم">
                             </div>
                             <div>
                                 <label class="block text-gray-400 mb-2 text-sm">رقم الهاتف</label>
@@ -959,5 +959,4 @@
         }
     </script>
 </body>
-
 </html>
