@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فيلا كافيه | Villa Cafe</title>
+    
+    <!-- خط 'Cairo' للعربية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- خط 'Great Vibes' للإنجليزي ليشبه اللوجو -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Gemini API Import -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        villa: {
+                            base: '#050505',   // أسود عميق جداً
+                            surface: '#121212', // رمادي فحمي للخلفيات الثانوية
+                            card: '#1E1E1E',    // لون الكروت
+                            gold: '#FDB827',    // *لون اللوجو الذهبي البرتقالي*
+                            goldhov: '#D49619', // لون ذهبي أغمق عند التحويم
+                            text: '#E5E5E5',    // أبيض غير ناصع للنصوص
+                            muted: '#A3A3A3',   // رمادي للنصوص الثانوية
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                        script: ['Great Vibes', 'cursive'], // خط اللوجو
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #050505;
+            color: #E5E5E5;
+            scroll-behavior: smooth;
+        }
+        
+        /* إصلاح مشكلة اختفاء العناوين تحت الناف بار */
+        section {
+            scroll-margin-top: 100px; /* مسافة لحماية العنوان من الشريط العلوي */
+        }
+
+        /* تأثير ذهبي للنصوص */
+        .text-gradient-gold {
+            background: linear-gradient(to right, #FDB827, #FFD700, #FDB827);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(5,5,5,0.7), rgba(5,5,5,1)), url('https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 5px;
+            border: 2px solid #121212;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FDB827;
+        }
+
+        .menu-category-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+        .menu-category-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: #FDB827;
+        }
+
+        .menu-item {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .menu-item:hover {
+            background-color: rgba(253, 184, 39, 0.05);
+            padding-right: 10px;
+        }
+        
+        /* إخفاء الأقسام افتراضياً */
+        .menu-category {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* علامات التبويب للقائمة */
+        .tab-btn.active {
+            background-color: #FDB827;
+            color: #000;
+            border-color: #FDB827;
+        }
+
+        /* تأثيرات قسم الـ AI */
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(253, 184, 39, 0.1);
+            transition: all 0.3s ease;
+        }
+        .ai-glow:focus-within {
+            box-shadow: 0 0 25px rgba(253, 184, 39, 0.3);
+            border-color: #FDB827;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #FDB827;
+            width: 24px;
+            height: 24px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-villa-base text-villa-text selection:bg-villa-gold selection:text-black">
+
+    <!-- شريط التنقل (Navbar) -->
+    <!-- التعديل هنا: تم تغيير py-6 إلى py-3 ليصبح الشريط أنحف على الموبايل -->
+    <nav class="fixed w-full z-50 transition-all duration-300 py-3 md:py-4 bg-black/80 backdrop-blur-md border-b border-white/5" id="navbar">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <!-- الشعار -->
+            <a href="#" class="flex flex-col items-center leading-none group">
+                <!-- التعديل هنا: تم تغيير h-20 إلى h-14 لتصغير اللوجو على الموبايل فقط -->
+                <!-- مع الحفاظ على md:h-20 ليبقى كبيراً على الكمبيوتر -->
+                <img src="images/logo villa.png" alt="Villa Cafe Logo" class="h-14 md:h-20 object-contain hover:scale-105 transition duration-300">
+            </a>
+
+            <!-- القائمة للشاشات الكبيرة -->
+            <div class="hidden md:flex space-x-6 space-x-reverse text-villa-text font-medium text-lg items-center">
+                <a href="#home" class="hover:text-villa-gold transition duration-300">الرئيسية</a>
+                <a href="#about" class="hover:text-villa-gold transition duration-300">من نحن</a>
+                <a href="#menu" class="hover:text-villa-gold transition duration-300">القائمة</a>
+                <a href="#ai-barista" class="hover:text-villa-gold transition duration-300 text-villa-gold flex items-center gap-2"><i class="fas fa-sparkles"></i> خبير المزاج</a>
+                <a href="#contact" class="hover:text-villa-gold transition duration-300">احجز طاولتك</a>
+                
+                <!-- زر تواصل معنا (قائمة منسدلة) -->
+                <div class="relative">
+                    <button onclick="toggleDesktopContact()" id="contact-btn-desktop" class="border border-villa-gold text-villa-gold px-6 py-2 rounded-full hover:bg-villa-gold hover:text-black transition duration-300 text-base font-bold flex items-center gap-2">
+                        تواصل معنا <i class="fas fa-caret-down"></i>
+                    </button>
+                    <!-- القائمة المنسدلة -->
+                    <div id="contact-dropdown-desktop" class="hidden absolute top-full left-0 mt-3 w-48 bg-villa-card border border-villa-gold/30 rounded-lg shadow-2xl overflow-hidden z-50 animate-fade-in-up">
+                        <a href="tel:0781131216" class="block px-4 py-3 text-white hover:bg-villa-gold hover:text-black transition border-b border-white/10 flex items-center gap-3">
+                            <i class="fas fa-phone-alt text-villa-gold group-hover:text-black"></i> 
+                            <span class="dir-ltr">0781131216</span>
+                        </a>
+                        <a href="https://wa.me/962781131216" target="_blank" class="block px-4 py-3 text-white hover:bg-green-600 hover:text-white transition flex items-center gap-3">
+                            <i class="fab fa-whatsapp text-green-500 group-hover:text-white"></i> 
+                            <span>واتساب</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- أيقونات السوشيال ميديا (ديسكتوب) -->
+                <div class="flex items-center gap-4 pr-6 border-r border-gray-700">
+                    <a href="https://www.google.com/maps/search/?api=1&query=3V2J%2B99V%2C+Amman" target="_blank" class="text-villa-gold hover:text-white transition transform hover:scale-110" title="موقعنا على الخريطة">
+                        <i class="fas fa-map-marker-alt text-2xl"></i>
+                    </a>
+                    <a href="https://www.facebook.com/share/1A6rQc7AKy/" target="_blank" class="text-villa-gold hover:text-white transition transform hover:scale-110" title="Facebook">
+                        <i class="fab fa-facebook-f text-2xl"></i>
+                    </a>
+                    <a href="https://www.instagram.com/villa_cafe1?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="text-villa-gold hover:text-white transition transform hover:scale-110" title="Instagram">
+                        <i class="fab fa-instagram text-2xl"></i>
+                    </a>
+                    <a href="https://www.snapchat.com/@villacaffe?sender_web_id=3cd90f77-8f37-407b-872c-063e8195f2cd&device_type=desktop&is_copy_url=true" target="_blank" class="text-villa-gold hover:text-white transition transform hover:scale-110" title="Snapchat">
+                        <i class="fab fa-snapchat text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- زر القائمة للموبايل + السوشيال -->
+            <div class="md:hidden flex items-center gap-4">
+                 <!-- أيقونات السوشيال ميديا (موبايل) - ظاهرة دائماً -->
+                <div class="flex items-center gap-4 ml-2 border-l border-gray-700 pl-4">
+                    <a href="https://www.google.com/maps/search/?api=1&query=3V2J%2B99V%2C+Amman" target="_blank" class="text-villa-gold hover:text-white transition">
+                        <i class="fas fa-map-marker-alt text-2xl"></i>
+                    </a>
+                    <a href="https://www.facebook.com/share/1A6rQc7AKy/" target="_blank" class="text-villa-gold hover:text-white transition">
+                        <i class="fab fa-facebook-f text-2xl"></i>
+                    </a>
+                    <a href="https://www.instagram.com/villa_cafe1?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="text-villa-gold hover:text-white transition">
+                        <i class="fab fa-instagram text-2xl"></i>
+                    </a>
+                    <a href="https://www.snapchat.com/@villacaffe?sender_web_id=3cd90f77-8f37-407b-872c-063e8195f2cd&device_type=desktop&is_copy_url=true" target="_blank" class="text-villa-gold hover:text-white transition">
+                        <i class="fab fa-snapchat text-2xl"></i>
+                    </a>
+                </div>
+
+                <button id="mobile-menu-btn" class="text-villa-gold text-2xl focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- القائمة المنسدلة للموبايل -->
+        <div id="mobile-menu" class="hidden md:hidden bg-villa-surface absolute w-full left-0 top-full border-t border-gray-800 shadow-2xl">
+            <a href="#home" onclick="closeMobileMenu()" class="block px-6 py-4 border-b border-gray-800 hover:bg-gray-800 text-villa-text">الرئيسية</a>
+            <a href="#about" onclick="closeMobileMenu()" class="block px-6 py-4 border-b border-gray-800 hover:bg-gray-800 text-villa-text">من نحن</a>
+            <a href="#menu" onclick="closeMobileMenu()" class="block px-6 py-4 border-b border-gray-800 hover:bg-gray-800 text-villa-text">القائمة</a>
+             <a href="#ai-barista" onclick="closeMobileMenu()" class="block px-6 py-4 border-b border-gray-800 hover:bg-gray-800 text-villa-gold font-bold"><i class="fas fa-sparkles"></i> خبير المزاج</a>
+            <a href="#contact" onclick="closeMobileMenu()" class="block px-6 py-4 border-b border-gray-800 hover:bg-gray-800 text-villa-gold font-bold">احجز طاولتك</a>
+            
+            <!-- تواصل معنا للموبايل (قائمة فرعية) -->
+            <div class="border-t border-gray-800">
+                <button onclick="toggleMobileContact()" class="w-full text-right block px-6 py-4 hover:bg-gray-800 text-villa-gold font-bold flex justify-between items-center outline-none">
+                    <span>تواصل معنا</span>
+                    <i id="mobile-arrow" class="fas fa-chevron-down transition-transform duration-300"></i>
+                </button>
+                <div id="mobile-contact-list" class="hidden bg-black/30 px-6 py-2 pb-4 space-y-3">
+                    <a href="tel:0781131216" class="flex items-center gap-3 text-white p-2 rounded hover:bg-white/10">
+                        <div class="w-8 h-8 rounded-full bg-villa-gold text-black flex items-center justify-center"><i class="fas fa-phone-alt"></i></div>
+                        <span class="dir-ltr">0781131216</span>
+                    </a>
+                    <a href="https://wa.me/962781131216" target="_blank" class="flex items-center gap-3 text-white p-2 rounded hover:bg-white/10">
+                        <div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center"><i class="fab fa-whatsapp"></i></div>
+                        <span>واتساب</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- القسم الرئيسي (Hero Section) -->
+    <section id="home" class="hero-bg h-screen flex items-center justify-center text-center relative overflow-hidden">
+        <div class="absolute top-1/4 left-10 w-32 h-32 bg-villa-gold/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-10 w-48 h-48 bg-villa-gold/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+
+        <div class="px-6 relative z-10 animate-fade-in-up mt-10">
+            <h4 class="text-villa-gold tracking-[0.5em] text-sm md:text-base mb-4 uppercase font-bold">أهلاً بكم في</h4>
+            <h1 class="font-script text-6xl md:text-9xl mb-6 text-villa-gold drop-shadow-lg">Villa Cafe</h1>
+            <h2 class="text-3xl md:text-5xl font-bold mb-8 text-white">حيث تلتقي الفخامة بالمذاق</h2>
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <a href="#menu" class="bg-villa-gold text-black px-10 py-4 rounded-full text-lg font-bold hover:bg-white transition duration-300 shadow-[0_0_20px_rgba(253,184,39,0.3)]">
+                    تصفح المنيو
+                </a>
+                <a href="#contact" class="border border-white/30 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-white/10 transition duration-300">
+                    احجز طاولتك
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم نبذة عنا (About) -->
+    <section id="about" class="py-24 bg-villa-base relative">
+        <div class="container mx-auto px-6">
+            <!-- تم تعديل التنسيق ليكون النص في المنتصف بعد حذف الصورة -->
+            <div class="flex flex-col items-center text-center">
+                <div class="max-w-3xl">
+                    <h3 class="text-villa-gold font-script text-4xl mb-2">قصتنا</h3>
+                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">التميز في كل تفصيل</h2>
+                    <p class="text-gray-400 mb-8 leading-loose text-lg">
+                        في "فيلا كافيه"، لا نقدم مجرد مشروب، بل نقدم تجربة. تصميمنا المستوحى من الفخامة الكلاسيكية مع لمسات عصرية يجعلنا الوجهة الأولى للباحثين عن الرقي والهدوء.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                        <div class="bg-villa-surface p-6 rounded-lg border border-white/5 hover:border-villa-gold/50 transition">
+                            <i class="fas fa-crown text-3xl text-villa-gold mb-3"></i>
+                            <h4 class="font-bold text-white text-xl">خدمة ملكية</h4>
+                        </div>
+                        <div class="bg-villa-surface p-6 rounded-lg border border-white/5 hover:border-villa-gold/50 transition">
+                            <i class="fas fa-music text-3xl text-villa-gold mb-3"></i>
+                            <h4 class="font-bold text-white text-xl">أجواء طربية</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم المنيو (القائمة الكاملة) -->
+    <section id="menu" class="py-24 bg-villa-surface relative">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-linen.png')] opacity-20"></div>
+        <div class="container mx-auto px-6 relative z-10">
+            <!-- أزرار التنقل بين الأقسام -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12">
+                <button onclick="filterMenu('all')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">الكل</button>
+                <button onclick="filterMenu('hot')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">بدفي العظم (ساخن)</button>
+                <button onclick="filterMenu('cold')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">جرعة تصحي الميت (بارد)</button>
+                <button onclick="filterMenu('natural')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">طبيعي يابا (عصائر)</button>
+                <button onclick="filterMenu('food')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">خسى الجوع (مأكولات)</button>
+                <button onclick="filterMenu('dessert')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">شغلة متعوب عليها (حلا)</button>
+                <button onclick="filterMenu('shisha')" class="tab-btn border border-gray-700 text-white px-6 py-2 rounded-full hover:border-villa-gold transition">ترويقة عالدغري</button>
+            </div>
+
+            <!-- رسالة ترحيبية تظهر في البداية -->
+            <div id="menu-placeholder" class="text-center py-12 border border-white/5 rounded-xl bg-villa-card">
+                <i class="fas fa-hand-pointer text-4xl text-villa-gold mb-4 animate-bounce"></i>
+                <h3 class="text-2xl font-bold text-white mb-2">اختر القسم المفضل لديك</h3>
+                <p class="text-gray-400">اضغط على الأزرار في الأعلى لعرض الأصناف</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-16" id="menu-container">
+
+                <!-- 1. بدفي العظم (مشروبات ساخنة) -->
+                <div class="menu-category" data-category="hot">
+                    <h3 class="menu-category-title text-3xl font-bold text-villa-gold text-center w-full">بدفي العظم <span class="text-sm text-gray-500 block font-normal mt-1">مشروبات ساخنة</span></h3>
+                    <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">أسبيريسو (صغيرة)</span>
+                            <span class="text-villa-gold font-bold">1.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">أسبيريسو (دبل)</span>
+                            <span class="text-villa-gold font-bold">2.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">قهوة تركية (صغيرة)</span>
+                            <span class="text-villa-gold font-bold">1.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">قهوة تركية (كبيرة)</span>
+                            <span class="text-villa-gold font-bold">1.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">أمريكانو</span>
+                            <span class="text-villa-gold font-bold">2.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">أمريكان</span>
+                            <span class="text-villa-gold font-bold">1.00</span>
+                        </div>
+                         <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">كابتشينو</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">كافيه لاتيه</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">سبانش لاتيه</span>
+                            <span class="text-villa-gold font-bold">3.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">كراميل ميكياتو</span>
+                            <span class="text-villa-gold font-bold">3.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">موكا (دارك / وايت)</span>
+                            <span class="text-villa-gold font-bold">3.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">هوت تشوكليت</span>
+                            <span class="text-villa-gold font-bold">2.25</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">شاي / أعشاب</span>
+                            <span class="text-villa-gold font-bold">1.00</span>
+                        </div>
+                         <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">شاي كرك</span>
+                            <span class="text-villa-gold font-bold">1.50</span>
+                        </div>
+                         <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">سحلب</span>
+                            <span class="text-villa-gold font-bold">1.75</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. جرعة تصحي الميت (قهوة باردة) -->
+                <div class="menu-category" data-category="cold">
+                    <h3 class="menu-category-title text-3xl font-bold text-villa-gold text-center w-full">جرعة تصحي الميت <span class="text-sm text-gray-500 block font-normal mt-1">قهوة باردة ومنعشة</span></h3>
+                    <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">آيس أمريكانو</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">آيس لاتيه</span>
+                            <span class="text-villa-gold font-bold">3.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">آيس سبانش لاتيه</span>
+                            <span class="text-villa-gold font-bold">3.25</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">آيس موكا</span>
+                            <span class="text-villa-gold font-bold">3.25</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">آيس بستاشيو لاتيه</span>
+                            <span class="text-villa-gold font-bold">3.25</span>
+                        </div>
+                         <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">آيس تي (خوخ / ليمون)</span>
+                            <span class="text-villa-gold font-bold">2.75</span>
+                        </div>
+                    </div>
+
+                    <!-- فرعي: مشاريب أغنياء -->
+                    <div class="mt-8">
+                        <h4 class="text-xl font-bold text-villa-gold mb-4 border-r-4 border-villa-gold pr-3">مشاريب أغنياء (فرابتشينو)</h4>
+                        <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                            <div class="menu-item flex justify-between items-center py-3">
+                                <span class="text-white text-lg font-medium">فرابتشينو</span>
+                                <span class="text-villa-gold font-bold">3.50</span>
+                            </div>
+                            <div class="menu-item flex justify-between items-center py-3">
+                                <span class="text-white text-lg font-medium">كراميل / شوكولاتة / فانيلا</span>
+                                <span class="text-villa-gold font-bold">3.50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. طبيعي يابا (عصائر) -->
+                <div class="menu-category" data-category="natural">
+                    <h3 class="menu-category-title text-3xl font-bold text-villa-gold text-center w-full">طبيعي يابا <span class="text-sm text-gray-500 block font-normal mt-1">عصائر فريش</span></h3>
+                    <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">ليمون ونعناع</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">برتقال</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">فراولة / مانجا / خوخ</span>
+                            <span class="text-villa-gold font-bold">2.75</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">كيوي / بلوبيري</span>
+                            <span class="text-villa-gold font-bold">2.75</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">باشن فروت / مانجو باشن</span>
+                            <span class="text-villa-gold font-bold">2.75</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">كوكتيل</span>
+                            <span class="text-villa-gold font-bold">3.50</span>
+                        </div>
+                    </div>
+                    
+                    <!-- فرعي: Energy -->
+                     <div class="mt-8">
+                        <h4 class="text-xl font-bold text-villa-gold mb-4 border-r-4 border-villa-gold pr-3">اعطيها ENERGY</h4>
+                        <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                            <div class="menu-item flex justify-between items-center py-3">
+                                <span class="text-white text-lg font-medium">مشروب طاقة</span>
+                                <span class="text-villa-gold font-bold">3.00</span>
+                            </div>
+                            <div class="menu-item flex justify-between items-center py-3">
+                                <span class="text-white text-lg font-medium">صودا</span>
+                                <span class="text-villa-gold font-bold">2.25</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. خسى الجوع (مأكولات) -->
+                <div class="menu-category" data-category="food">
+                    <h3 class="menu-category-title text-3xl font-bold text-villa-gold text-center w-full">خسى الجوع <span class="text-sm text-gray-500 block font-normal mt-1">مأكولات خفيفة</span></h3>
+                    <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">بيتزا</span>
+                            <span class="text-villa-gold font-bold">3.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">مناقيش</span>
+                            <span class="text-villa-gold font-bold">1.00</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">معجنات</span>
+                            <span class="text-villa-gold font-bold">0.35</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. شغلة متعوب عليها (حلويات) - تم فصله ليصبح قسماً مستقلاً -->
+                <div class="menu-category" data-category="dessert">
+                    <h3 class="menu-category-title text-3xl font-bold text-villa-gold text-center w-full">شغلة متعوب عليها <span class="text-sm text-gray-500 block font-normal mt-1">حلويات وإضافات</span></h3>
+                    <div class="bg-villa-card p-6 rounded-xl border border-white/5">
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">فانيلا / شوكولاتة</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">نوتيلا</span>
+                            <span class="text-villa-gold font-bold">2.50</span>
+                        </div>
+                            <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">لوتس / أوريو / سنيكرز</span>
+                            <span class="text-villa-gold font-bold">2.75</span>
+                        </div>
+                        <div class="menu-item flex justify-between items-center py-3">
+                            <span class="text-white text-lg font-medium">توت أزرق / باشن استوائية</span>
+                            <span class="text-villa-gold font-bold">2.75</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. ترويقة عالدغري (شيشة) -->
+                <div class="menu-category col-span-1 lg:col-span-2" data-category="shisha">
+                    <div class="bg-villa-surface border border-villa-gold/20 rounded-xl p-8 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-32 h-32 bg-villa-gold opacity-5 rounded-full blur-2xl"></div>
+                        <h3 class="text-3xl font-bold text-villa-gold text-center mb-8">ترويقة عالدغري <span class="text-white text-lg block mt-1">(أراجيل)</span></h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-black/50 p-6 rounded-lg text-center border border-white/10 hover:border-villa-gold transition">
+                                <h4 class="text-2xl font-bold text-white mb-2">مزايا</h4>
+                                <span class="text-3xl text-villa-gold font-bold font-script">3.50</span>
+                            </div>
+                            <div class="bg-black/50 p-6 rounded-lg text-center border border-white/10 hover:border-villa-gold transition">
+                                <h4 class="text-2xl font-bold text-white mb-2">فاخر</h4>
+                                <span class="text-3xl text-villa-gold font-bold font-script">4.50</span>
+                            </div>
+                            <div class="bg-black/50 p-6 rounded-lg text-center border border-white/10 hover:border-villa-gold transition">
+                                <h4 class="text-2xl font-bold text-white mb-2">نخلة</h4>
+                                <span class="text-3xl text-villa-gold font-bold font-script">4.50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW FEATURE: AI Coffee Consultant -->
+    <section id="ai-barista" class="py-20 bg-villa-base relative overflow-hidden">
+         <!-- decorative elements -->
+         <div class="absolute -right-20 top-20 w-64 h-64 bg-villa-gold/10 rounded-full blur-3xl"></div>
+         
+         <div class="container mx-auto px-6 relative z-10">
+            <div class="text-center mb-10">
+                <i class="fas fa-magic text-villa-gold text-4xl mb-4 animate-pulse"></i>
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">✨ خبير مزاجك ✨</h2>
+                <div class="w-24 h-1 bg-villa-gold mx-auto"></div>
+                <p class="text-gray-400 mt-4 max-w-2xl mx-auto">
+                    محتار شو تطلب؟ احكيلنا كيف مزاجك أو شو جاي عبالك، والباريستا الذكي رح يقترح عليك المشروب المثالي من المنيو!
+                </p>
+            </div>
+
+            <div class="max-w-2xl mx-auto bg-villa-card p-8 rounded-2xl border border-villa-gold/30 ai-glow">
+                <div class="mb-6">
+                    <label class="block text-villa-gold font-bold mb-2">كيف حاسس حالك اليوم؟</label>
+                    <textarea id="user-mood" rows="3" class="w-full bg-black/50 border border-white/10 rounded-lg p-4 text-white focus:border-villa-gold focus:outline-none transition" placeholder="مثال: نعسان وبدي اشي يصحصحني، أو جاي عبالي اشي بارد وحلو..."></textarea>
+                </div>
+                
+                <button onclick="recommendCoffee()" class="w-full bg-villa-gold text-black font-bold py-3 rounded-lg hover:bg-white transition duration-300 flex justify-center items-center gap-2">
+                    <span id="btn-text">اقترح عليّ مشروب</span>
+                    <div id="loader" class="loader hidden"></div>
+                </button>
+
+                <div id="ai-result" class="mt-8 hidden p-4 bg-villa-surface rounded-lg border border-white/10">
+                    <h4 class="text-villa-gold font-bold mb-2"><i class="fas fa-robot"></i> الباريستا الذكي يقول:</h4>
+                    <p id="recommendation-text" class="text-white leading-relaxed"></p>
+                </div>
+            </div>
+         </div>
+    </section>
+
+    <!-- تواصل معنا (Contact) -->
+    <section id="contact" class="py-24 bg-villa-base">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- معلومات التواصل -->
+                <div class="bg-villa-card p-10 rounded-xl border border-white/5 relative overflow-hidden h-full flex flex-col justify-center">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-villa-gold opacity-10 rounded-bl-full"></div>
+                    
+                    <h3 class="text-3xl font-bold text-white mb-8">شرفنا بزيارتك</h3>
+                    
+                    <!-- إضافة z-index لضمان قابلية النقر على الروابط -->
+                    <div class="space-y-8 relative z-10">
+                        <div class="flex items-start gap-5">
+                            <div class="w-12 h-12 rounded bg-villa-surface flex items-center justify-center text-villa-gold border border-villa-gold/20 shrink-0">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-white font-bold text-lg mb-1">العنوان</h5>
+                                <p class="text-gray-400">فيلا كافيه، 3V2J+99V، عمّان</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-5">
+                            <div class="w-12 h-12 rounded bg-villa-surface flex items-center justify-center text-villa-gold border border-villa-gold/20 shrink-0">
+                                <i class="fas fa-clock text-xl"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-white font-bold text-lg mb-1">ساعات العمل</h5>
+                                <p class="text-gray-400">يومياً: 9:00 صباحاً - 3:00 صباحاً</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-5">
+                            <div class="w-12 h-12 rounded bg-villa-surface flex items-center justify-center text-villa-gold border border-villa-gold/20 shrink-0">
+                                <i class="fas fa-phone text-xl"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-white font-bold text-lg mb-1">للحجز والاستفسار</h5>
+                                <!-- تم إعادة الرابط ليكون رقم اتصال مباشر فقط -->
+                                <a href="tel:0781131216" target="_self" class="text-villa-gold font-bold text-xl hover:text-white transition duration-300 flex items-center gap-2 group" dir="ltr">
+                                    0781131216
+                                    <i class="fas fa-external-link-alt text-sm opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- نموذج حجز الطاولة (الجديد) -->
+                <div class="bg-villa-surface border border-villa-gold/20 p-8 rounded-xl shadow-2xl">
+                    <h3 class="text-2xl font-bold text-villa-gold mb-6 text-center border-b border-white/10 pb-4">احجز طاولتك الآن</h3>
+                    
+                    <!-- تم تغيير نوع الزر إلى button لتجنب إعادة التحميل نهائياً -->
+                    <form class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-gray-400 mb-2 text-sm">الاسم</label>
+                                <input type="text" id="booking-name" required class="w-full bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition" placeholder="الاسم الكريم">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 mb-2 text-sm">رقم الهاتف</label>
+                                <input type="tel" id="booking-phone" required class="w-full bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition" placeholder="07xxxxxxxx">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-gray-400 mb-2 text-sm text-center">الأشخاص</label>
+                                <input type="number" id="booking-guests" min="1" value="2" class="w-full bg-black/40 border border-white/10 text-white px-2 py-3 rounded text-center focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-gray-400 mb-2 text-sm">الموعد</label>
+                                <select id="date-select" onchange="toggleDate(this)" class="w-full bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition">
+                                    <option value="اليوم" class="bg-gray-900">اليوم</option>
+                                    <option value="غداً" class="bg-gray-900">غداً (بكرة)</option>
+                                    <option value="other" class="bg-gray-900">تاريخ آخر...</option>
+                                </select>
+                                <input type="date" id="custom-date" style="display: none;" class="w-full mt-3 bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition [color-scheme:dark]">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 mb-2 text-sm">الوقت</label>
+                            <select id="booking-time" required class="w-full bg-black/40 border border-white/10 text-white px-4 py-3 rounded focus:border-villa-gold focus:outline-none focus:ring-1 focus:ring-villa-gold transition text-right" style="direction: rtl;">
+                                <option value="" disabled selected class="bg-gray-900 text-gray-400">اختر وقت الحجز</option>
+                                
+                                <optgroup label="الفترة الصباحية" class="bg-gray-900 text-villa-gold font-bold">
+                                    <option value="09:00 صباحاً" class="text-white font-normal">09:00 صباحاً</option>
+                                    <option value="10:00 صباحاً" class="text-white font-normal">10:00 صباحاً</option>
+                                    <option value="11:00 صباحاً" class="text-white font-normal">11:00 صباحاً</option>
+                                </optgroup>
+
+                                <optgroup label="فترة الظهيرة والعصر" class="bg-gray-900 text-villa-gold font-bold">
+                                    <option value="12:00 ظهراً" class="text-white font-normal">12:00 ظهراً</option>
+                                    <option value="01:00 ظهراً" class="text-white font-normal">01:00 ظهراً</option>
+                                    <option value="02:00 ظهراً" class="text-white font-normal">02:00 ظهراً</option>
+                                    <option value="03:00 عصراً" class="text-white font-normal">03:00 عصراً</option>
+                                    <option value="04:00 عصراً" class="text-white font-normal">04:00 عصراً</option>
+                                    <option value="05:00 عصراً" class="text-white font-normal">05:00 عصراً</option>
+                                </optgroup>
+
+                                <optgroup label="الفترة المسائية" class="bg-gray-900 text-villa-gold font-bold">
+                                    <option value="06:00 مساءً" class="text-white font-normal">06:00 مساءً</option>
+                                    <option value="07:00 مساءً" class="text-white font-normal">07:00 مساءً</option>
+                                    <option value="08:00 مساءً" class="text-white font-normal">08:00 مساءً</option>
+                                    <option value="09:00 مساءً" class="text-white font-normal">09:00 مساءً</option>
+                                    <option value="10:00 مساءً" class="text-white font-normal">10:00 مساءً</option>
+                                    <option value="11:00 مساءً" class="text-white font-normal">11:00 مساءً</option>
+                                </optgroup>
+
+                                <optgroup label="السهرة (بعد منتصف الليل)" class="bg-gray-900 text-villa-gold font-bold">
+                                    <option value="12:00 منتصف الليل" class="text-white font-normal">12:00 منتصف الليل</option>
+                                    <option value="01:00 صباحاً" class="text-white font-normal">01:00 صباحاً</option>
+                                    <option value="02:00 صباحاً" class="text-white font-normal">02:00 صباحاً</option>
+                                    <option value="03:00 صباحاً" class="text-white font-normal">03:00 صباحاً</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- تم تغيير النوع إلى button واستخدام onclick بدلاً من onsubmit -->
+                        <button type="button" onclick="sendToWhatsapp(event)" class="w-full bg-villa-gold text-black font-bold py-4 rounded hover:bg-white transition duration-300 uppercase tracking-widest mt-4 shadow-[0_0_15px_rgba(253,184,39,0.2)]">
+                            احجز الطاولة عبر واتساب <i class="fab fa-whatsapp mr-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- الفوتر -->
+    <footer class="bg-black py-8 border-t border-white/10 text-center">
+        <div class="container mx-auto px-6">
+            <h2 class="font-script text-3xl text-villa-gold mb-4">Villa Cafe</h2>
+            <p class="text-gray-600 text-sm">جميع الحقوق محفوظة © 2025</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module">
+      import { GoogleGenerativeAI } from "@google/generative-ai";
+
+      // IMPORTANT: The execution environment provides the key at runtime.
+      const apiKey = ""; 
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
+
+      const menuItems = `
+        - اسبريسو (صغيرة/دبل)
+        - قهوة تركية
+        - امريكانو
+        - امريكان
+        - كابتشينو
+        - كافيه لاتيه
+        - سبانش لاتيه
+        - كراميل ميكياتو
+        - موكا (دارك / وايت)
+        - هوت تشوكليت
+        - شاي / أعشاب / شاي كرك / سحلب
+        - آيس امريكانو / لاتيه / سبانش / موكا / بستاشيو
+        - آيس تي (خوخ / ليمون)
+        - فرابتشينو (كراميل / شوكولاتة / فانيلا)
+        - عصير ليمون ونعناع / برتقال / فراولة / مانجا / خوخ / كيوي / بلوبيري / باشن فروت / كوكتيل
+        - مشروب طاقة / صودا
+        - بيتزا / مناقيش / معجنات
+        - حلويات: كريب / وافل / بان كيك (فانيلا / شوكولاتة / نوتيلا / لوتس / أوريو / سنيكرز / فواكه)
+        - أراجيل (مزايا / فاخر / نخلة)
+      `;
+
+      window.recommendCoffee = async function() {
+        const userMood = document.getElementById('user-mood').value;
+        const btnText = document.getElementById('btn-text');
+        const loader = document.getElementById('loader');
+        const resultDiv = document.getElementById('ai-result');
+        const recommendationText = document.getElementById('recommendation-text');
+
+        if (!userMood.trim()) {
+            alert('يرجى كتابة حالتك المزاجية أولاً!');
+            return;
+        }
+
+        // Show loader
+        btnText.innerText = 'جاري التفكير...';
+        loader.classList.remove('hidden');
+        resultDiv.classList.add('hidden');
+
+        try {
+            const prompt = `
+            You are a friendly and expert barista at "Villa Cafe".
+            The menu items are:
+            ${menuItems}
+
+            The customer says: "${userMood}"
+
+            Based on their mood/request, recommend 1 or 2 specific items from the menu.
+            Explain why you chose them in a friendly, conversational Arabic way (Jordanian dialect preferred but understandable Arabic is fine).
+            Use emojis. Keep it short (2-3 sentences max).
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            recommendationText.innerText = text;
+            resultDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error(error);
+            recommendationText.innerText = "عذراً، الباريستا مشغول قليلاً الآن. جرب مرة أخرى!";
+            resultDiv.classList.remove('hidden');
+        } finally {
+            btnText.innerText = 'اقترح عليّ مشروب';
+            loader.classList.add('hidden');
+        }
+      }
+    </script>
+
+    <script>
+        // دالة لإظهار/إخفاء قائمة تواصل معنا (ديسكتوب)
+        function toggleDesktopContact() {
+            const dropdown = document.getElementById('contact-dropdown-desktop');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // دالة لإظهار/إخفاء قائمة تواصل معنا (موبايل)
+        function toggleMobileContact() {
+            const contactList = document.getElementById('mobile-contact-list');
+            const arrow = document.getElementById('mobile-arrow');
+            contactList.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+
+        // إغلاق القائمة المنسدلة عند النقر خارجها
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('contact-dropdown-desktop');
+            const btn = document.getElementById('contact-btn-desktop');
+            
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                if (!btn.contains(event.target) && !dropdown.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        // دالة إرسال الحجز للواتساب
+        function sendToWhatsapp(e) {
+            // منع أي سلوك افتراضي (رغم أن الزر أصبح button، لكن للاحتياط)
+            if(e) e.preventDefault();
+
+            // جمع البيانات
+            const name = document.getElementById('booking-name').value;
+            const phone = document.getElementById('booking-phone').value;
+            const guests = document.getElementById('booking-guests').value;
+            const time = document.getElementById('booking-time').value;
+            
+            // تحقق بسيط
+            if (!name || !phone || !time) {
+                alert('يرجى تعبئة جميع الحقول المطلوبة (الاسم، الهاتف، الوقت)');
+                return;
+            }
+            
+            // تحديد التاريخ
+            let date = document.getElementById('date-select').value;
+            if (date === 'other') {
+                date = document.getElementById('custom-date').value;
+            }
+
+            // نص الرسالة
+            const message = `مرحباً، أرغب بحجز طاولة في فيلا كافيه ☕✨
+            
+👤 الاسم: ${name}
+📱 الهاتف: ${phone}
+👥 عدد الأشخاص: ${guests}
+📅 التاريخ: ${date}
+⏰ الوقت: ${time}
+
+يرجى تأكيد الحجز، شكراً!`;
+
+            // رقم الواتساب (الأردن)
+            const whatsappNumber = "962781131216";
+
+            // إنشاء الرابط وفتحه في نافذة جديدة
+            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            
+            // فتح في نافذة جديدة ليبقى العميل في الموقع
+            window.open(url, '_blank');
+        }
+
+        // دالة لإظهار حقل التاريخ عند اختيار "تاريخ آخر"
+        function toggleDate(select) {
+            const dateInput = document.getElementById('custom-date');
+            if (select.value === 'other') {
+                dateInput.style.display = 'block';
+                dateInput.required = true;
+            } else {
+                dateInput.style.display = 'none';
+                dateInput.required = false;
+            }
+        }
+        
+        // دالة لإغلاق قائمة الموبايل عند الضغط على رابط
+        function closeMobileMenu() {
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('bg-black/95', 'shadow-lg');
+                navbar.classList.remove('bg-black/80');
+            } else {
+                navbar.classList.remove('bg-black/95', 'shadow-lg');
+                navbar.classList.add('bg-black/80');
+            }
+        });
+
+        // سكربت فلترة المنيو
+        function filterMenu(category) {
+            const items = document.querySelectorAll('.menu-category');
+            const btns = document.querySelectorAll('.tab-btn');
+            const placeholder = document.getElementById('menu-placeholder');
+            
+            // إخفاء الرسالة الترحيبية عند الاختيار
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+
+            // تحديث الأزرار
+            btns.forEach(btn => btn.classList.remove('active', 'bg-villa-gold', 'text-black', 'border-villa-gold'));
+            event.target.classList.add('active', 'bg-villa-gold', 'text-black', 'border-villa-gold');
+            event.target.classList.remove('text-white', 'border-gray-700');
+
+            // إظهار/إخفاء الأقسام
+            items.forEach(item => {
+                // إظهار القسم إذا طابق الفئة المختارة أو إذا تم اختيار "الكل"
+                if (category === 'all' || item.getAttribute('data-category').includes(category)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
